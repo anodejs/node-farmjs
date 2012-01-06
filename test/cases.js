@@ -7,24 +7,36 @@
  * Node.js apps spawned and port-allocated automatically upon request
  */
 exports.apps = [
-    { from: 'http://public.anodejs.org/1/2/3/4?q=5', spawn: '$/master/apps/public/.shimmed.v2.index.js', path: "/1/2/3/4?q=5", public: true },
-/*
+
     //
     // spawn
     //
 
+    // spawn a few node.js apps, test a few url and query variations
     { from: 'http://anodejs.cloudapp.net/apps?$app=test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/apps', app: 'test' },
     { from: 'http://test.anodejs.org/1/2/3/4?q=5', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/1/2/3/4?q=5', app: 'test' },
-    { from: 'http://foo.goo.anodejs.org/p/a/t/h', error: 404 },
     { from: 'http://pull.sys.anodejs.org', spawn: '$/master/sys/pull/.shimmed.v2.index.js', path: '/', app: 'pull.sys' },
     { from: 'http://direct.anodejs.org/12345', spawn: '$/master/apps/direct/.shimmed.v2.index.js', path: '/12345', app: 'direct' },
     { from: 'http://direct2.anodejs.org/1234599', spawn: '$/master/apps/direct2/.shimmed.v2.index.js', path: '/1234599', app: 'direct2' },
     { from: 'http://direct2.anodejs.org/1234599/1234', spawn: '$/master/apps/direct2/.shimmed.v2.index.js', path: '/1234599/1234', app: 'direct2' },
+
+    // spawn an app via an alias ('direct-alias' is an alias for 'direct')
     { from: 'http://direct-alias.anodejs.org/1234588', spawn: '$/master/apps/direct/.shimmed.v2.index.js', path: '/1234588', app: 'direct' },
+
+    // use $app=test to override any app decision
     { from: 'http://tooooooooooooo.anodejs.org/a/b/c?$app=test&a=1', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/a/b/c?a=1', app: 'test' },
+
+    // spawn an app that resides in a branch ('foofoo.branch9') and make sure the x-farmjs-app
+    // in the header is resolves to the basename (in this case, 'foofoo')
     { from: 'http://foogoo.branch9.anodejs.org', spawn: '$/branch9/apps/foogoo/.shimmed.v2.index.js', path: '/', app: 'foogoo' },
-    { from: 'http://public.anodejs.org/1/2/3/4?q=5', spawn: '$/master/apps/public/.shimmed.v2.index.js', path: "/1/2/3/4?q=5", public: true },
-    
+
+    // try to access a public app (named 'public'). 'public: true' indicates to the harness
+    // that the app should be accessible via http and https without a client certificate
+    { from: 'http://public.anodejs.org/1/2/3/4?q=5', spawn: '$/master/apps/public/.shimmed.v2.index.js', path: "/1/2/3/4?q=5", app: 'public', public: true },
+
+    // try to access an app that does not exist and expect a 404
+    { from: 'http://foo.goo.anodejs.org/p/a/t/h', error: 404 },
+
     //
     // proxy
     //

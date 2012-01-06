@@ -166,9 +166,12 @@ tests.setUp = function(cb) {
 		var app = self.apps[appname];
 
 		if (app.type === "node") {
+			var script = path.join(self.workdir, app.index);
 			app.spawn = {
-				command: "node",
-				script: path.join(self.workdir, app.index),
+				name: app.name,
+				command: process.execPath,
+				args: [ script ],
+				monitor: script,
 			};
 
 			// this will be the contents of the index file.
@@ -193,7 +196,7 @@ tests.setUp = function(cb) {
 			};
 
 			var indexContents = "(" + indexTemplate.toString() + ")();";
-			fs.writeFileSync(app.spawn.script, indexContents);
+			fs.writeFileSync(script, indexContents);
 		}
 		else {
 
@@ -280,7 +283,7 @@ tests.t1 = function(test) {
 			// If the request does not target a public app, we expect 401 from both 'http' and 'https' endpoints
 			//
 
-			if (!c.public) {
+			if (!c.public && c.error !== 404) {
 				test.equals(results.http.statusCode, 401);
 				test.equals(results.https.statusCode, 401);
 
