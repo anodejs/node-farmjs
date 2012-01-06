@@ -68,7 +68,7 @@ module.exports = function(webServerPort) {
 	*/
 
 	return function(logger, name, callback) {
-		logger.info('getappbyname called with', name);
+		logger.log('getappbyname called with', name);
 
 		if (!(name in apps)) {
 			callback(new Error("app '" + name + "' not found"));

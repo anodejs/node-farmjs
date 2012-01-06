@@ -11,9 +11,13 @@ var appresolver = require('./appresolver');
 var fs = require('fs');
 var path = require('path');
 
-function InstanceManager() {
+function InstanceManager(options) {
 	var self = this;
+	options = options || {};
+	options.logger = options.logger || logule;
+
 	self.instances = {};
+	self.logger = ctxconsole(options.logger);
 	return self;
 }
 
@@ -22,12 +26,15 @@ function InstanceManager() {
 //
 InstanceManager.prototype.close = function() {
 	var self = this;
+
 	for (var id in self.instances) {
+		self.logger.info('Closing instance', id);
 		var inst = self.instances[id];
 		inst.router.close();
 		inst.http.server.close();
 		inst.https.server.close();
 		inst.web.server.close();
+		inst.internal.server.close();
 	}
 };
 
@@ -197,23 +204,15 @@ InstanceManager.prototype.start = function(id, callback) {
 
 			}).listen(port);
 
-			logule.suppress('debug', 'info', 'warn');
 
-
-			/*var o = logule;
-			logule = ctxconsole(o);
-			logule.pushctx = function(c) {
-				var newLogule = o.sub(c);
-				return ctxconsole(newLogule);
-			};*/
-
-			router = farmjs.createRouter({ logger: logule });
+			router = farmjs.createRouter({ logger: self.logger.pushctx(id), instance: id });
 			router.addParentDomain("anodejs.org");
 			router.getAppByName = appresolver(port);
+
 			router.getInstanceByID = function(id, callback) {
 				var inst = self.instances[id];
 				if (!inst) return callback(new Error("instance "+ id + " not found"));
-				return callback(null, { host: 'localhost', port: inst.http.port });
+				return callback(null, { host: 'localhost', port: inst.internal.port });
 			}
 
 			return callback(null, { server: webServer, port: port });
@@ -226,7 +225,7 @@ InstanceManager.prototype.start = function(id, callback) {
 
 			var http = express.createServer();
 			http.listen(port);
-			http.use(router.connect());
+			http.use(router.connect({ logger: self.logger.pushctx(id + ":http    ") }));
 			return callback(null, { server: http, port: port });
 		});
 	}
@@ -244,24 +243,40 @@ InstanceManager.prototype.start = function(id, callback) {
 			});
 
 			https.listen(port);
-			https.use(router.connect());
+			https.use(router.connect({ logger: self.logger.pushctx(id + ":https   ") }));
 
 			return callback(null, { server: https, port: port });
 		});
 	}
 
-	return async.series(
-		[ _startWebServer, _startHttpRouter, _startHttpsRouter ], 
-		function(err, results) {
+	function _startInternalRouter(callback) {
+		return _findport(function(err, port) {
 			if (err) return callback(err);
-			self.instances[id] = {
-				router: router,
-				web: results[0],
-				http: results[1],
-				https: results[2],
-			};
-			return callback(null, self.instances[id]);
+
+			var http = express.createServer();
+			http.listen(port);
+			http.use(router.connect({ authPrivate: false, logger: self.logger.pushctx(id + ":internal") }));
+			return callback(null, { server: http, port: port });
 		});
+	}
+
+	return async.series([ 
+		_startWebServer, 
+		_startHttpRouter, 
+		_startHttpsRouter,
+		_startInternalRouter,
+	], 
+	function(err, results) {
+		if (err) return callback(err);
+		self.instances[id] = {
+			router: router,
+			web: results[0],
+			http: results[1],
+			https: results[2],
+			internal: results[3],
+		};
+		return callback(null, self.instances[id]);
+	});
 };
 
 exports.createInstanceManager = function() {

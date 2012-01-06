@@ -4,7 +4,10 @@ var path = require('path');
 var async = require('async');
 
 var farmjs = require('../main');
-var instman = require('./instman').createInstanceManager();
+var instman = require('./instman');
+var logule = require('logule');
+
+logule.suppress('trace');
 
 var tests = { };
 tests.setUp = function(cb) {
@@ -21,7 +24,7 @@ tests.setUp = function(cb) {
 		console.info.apply(console, args);
 	}
 
-	self.instman = instman;
+	self.instman = instman.createInstanceManager({ logger: logule });
 	self.req = function(url, callback) {
 		return self.instman.req('inst0', url, callback);
 	};
@@ -54,7 +57,7 @@ tests.t1 = function(test) {
 	//
 
 	var cases = require('./cases').apps;
-	async.forEach(cases, function(c, next) {
+	async.forEachSeries(cases, function(c, next) {
 		self.log("CASE: " + JSON.stringify(c));
 
 		//
@@ -71,7 +74,7 @@ tests.t1 = function(test) {
 				// If the request does not target a public app, we expect 401 from both 'http' and 'https' endpoints
 				//
 
-				if (!c.public && c.error !== 404 && c.error !== 400) {
+				if (!c.public && c.error !== 404) {
 					test.equals(results.http.statusCode, 401);
 					test.equals(results.https.statusCode, 401);
 					delete results.http;
@@ -104,7 +107,6 @@ tests.t1 = function(test) {
 						self.log(body);
 					}			
 				}
-
 			}
 
 			next();

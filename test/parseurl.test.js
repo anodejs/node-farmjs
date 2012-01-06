@@ -6,7 +6,7 @@ var ctxconsole = require('ctxobj').console;
 exports.parseURL = {
 
 	setUp: function(cb) {
-		var server = farmjs.create();
+		var server = farmjs.createRouter({ instance: 'inst0' });
 		this._server = server;
 
 		//
