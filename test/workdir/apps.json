@@ -252,7 +252,7 @@
       "path": "index.aspx",
       "mtime": "2011-12-08T17:50:14.000Z"
     },
-    "public": false,
+    "public": true,
     "internalURL": "https://www.anodejs.org:444/hello.world",
     "localURL": "http://127.0.0.1:8888/hello.world",
     "endpoints": {

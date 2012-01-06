@@ -8,10 +8,6 @@
  */
 exports.apps = [
 
-    //
-    // spawn
-    //
-
     // spawn a few node.js apps, test a few url and query variations
     { from: 'http://anodejs.cloudapp.net/apps?$app=test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/apps', app: 'test' },
     { from: 'http://test.anodejs.org/1/2/3/4?q=5', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/1/2/3/4?q=5', app: 'test' },
@@ -37,31 +33,22 @@ exports.apps = [
     // try to access an app that does not exist and expect a 404
     { from: 'http://foo.goo.anodejs.org/p/a/t/h', error: 404 },
 
-    //
-    // proxy
-    //
-
+    // this app is marked as 'proxy' and not 'spawn', in which case we do not expect anything to be
+    // spawned, but we expect the request to be proxied appropriately and headers piggybacked on
+    // the request. hello.world is also public, so verify that as well.
     { from: 'http://anodejs.cloudapp.net/hooligan/foo/goo?a=6', headers: { 'x-anodejs-rewrite': 'master/apps/hooligan/index.svc' }, path: '/foo/goo?a=6', app: 'hooligan' },
+    { from: 'http://hello.world.anodejs.org/', headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
+    { from: 'http://anodejs.org/hello.world', headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
+
+//    { from: 'http://test.anodejs.org/a/b?$llog=BADINST', error: 404 },
+//    { from: 'http://test.anodejs.org/a/b?$llog', error: 400 },
+//    { from: 'http://hello.world.anodejs.org/a/b/c?$llog', spawn: '$/master/apps/world/hello/index.aspx', path:'/a/b/c' },
 
 /*
-    { from: 'http://internal.anodejs.org/1/2/3/4?q=5', error: 401, allowPrivate: false, app: 'internal' },
-    { from: 'http://internal.anodejs.org/1/2/3/4?q=5', error: 200, allowPrivate: true, app: 'internal' },
     { from: 'http://test.anodejs.org/a/b?$llog=instance9', spawn: '$/master/apps/test/.shimmed.v2.index.js.logs/0.txt', path: '/a/b', app: 'test' },
     { from: 'http://rp.sys.branch9.anodejs.org/forbidden', error: 403, app: 'rp.sys.branch9' },
 */
 
-];
-
-/**
- * Rewrite header - apps proxied to some other server with a rewrite header (x-anodejs-rewrite) specifying the
- * actual location of the app to target
- */
-exports.rewrite = [
-    { from: 'http://hello.world.anodejs.org/', rewrite: '$/master/apps/world/hello/index.aspx', path: '/' },
-    { from: 'http://anodejs.org/hello.world', rewrite: '$/master/apps/world/hello/index.aspx', path: '/' },
-    { from: 'http://test.anodejs.org/a/b?$llog=BADINST', error: 404 },
-    { from: 'http://test.anodejs.org/a/b?$llog', error: 400 },
-    { from: 'http://hello.world.anodejs.org/a/b/c?$llog', spawn: '$/master/apps/world/hello/index.aspx', path:'/a/b/c' },
 ];
 
 /**
