@@ -1,6 +1,7 @@
 var async = require('async');
 var portscanner = require('portscanner');
 var urlparser = require('url');
+var ctxconsole = require('ctxobj').console;
 var logule = require('logule');
 var http = require('http');
 var https = require('https');
@@ -28,6 +29,24 @@ InstanceManager.prototype.close = function() {
 		inst.https.server.close();
 		inst.web.server.close();
 	}
+};
+
+// 
+// Sends a request to all farm instances.
+//
+InstanceManager.prototype.reqall = function(url, callback) {
+	var self = this;
+	var results = {};
+	return async.forEachSeries(Object.keys(self.instances), function(id, cb) {
+		self.req(id, url, function(err, res) {
+			if (err) return cb(err);
+			results[id] = res;
+			return cb();
+		});
+	}, function(err) {
+		if (err) return callback(err);
+		return callback(null, results);
+	});
 };
 
 //
@@ -177,6 +196,16 @@ InstanceManager.prototype.start = function(id, callback) {
 				res.end(JSON.stringify(echo, true, 2));
 
 			}).listen(port);
+
+			logule.suppress('debug', 'info', 'warn');
+
+
+			/*var o = logule;
+			logule = ctxconsole(o);
+			logule.pushctx = function(c) {
+				var newLogule = o.sub(c);
+				return ctxconsole(newLogule);
+			};*/
 
 			router = farmjs.createRouter({ logger: logule });
 			router.addParentDomain("anodejs.org");

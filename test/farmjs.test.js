@@ -58,54 +58,58 @@ tests.t1 = function(test) {
 		self.log("CASE: " + JSON.stringify(c));
 
 		//
-		// Send request
+		// Send request to all instances and verify they all behave as expected
+		//
 
-		self.req(c.from, function(err, results) {
+		self.instman.reqall(c.from, function(err, allresults) {
 			test.ok(!err, err);
 
-			//
-			// If the request does not target a public app, we expect 401 from both 'http' and 'https' endpoints
-			//
+			for (var id in allresults) {
+				var results = allresults[id];
 
-			if (!c.public && c.error !== 404) {
-				test.equals(results.http.statusCode, 401);
-				test.equals(results.https.statusCode, 401);
+				//
+				// If the request does not target a public app, we expect 401 from both 'http' and 'https' endpoints
+				//
 
-				delete results.http;
-				delete results.https;
-			}
-
-			for (var k in results) {
-				var res = results[k];
-				var body = res.body;
-
-				var expectedStatus = c.error ? c.error : 200;
-				test.equals(res.statusCode, expectedStatus, c.from);
-				test.equals(res.headers['content-type'], "application/json");
-
-				if (res.statusCode === 200) {
-					body = JSON.parse(body);
-
-					test.equals(body.url, c.path, "Expecting URL passed to app should be " + c.path);
-					
-					if (c.spawn) {
-						var expectedScript = path.normalize(c.spawn.replace('$', path.join(__dirname, 'workdir')));
-						test.equals(body.argv[1], expectedScript, "Expecting script to be " + expectedScript);
-					}
-
-					test.equals(body.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
-					test.equals(body.headers[farmjs.HEADER_APP], c.app, "Expecting app to be " + c.app);
-					test.ok(body.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
+				if (!c.public && c.error !== 404 && c.error !== 400) {
+					test.equals(results.http.statusCode, 401);
+					test.equals(results.https.statusCode, 401);
+					delete results.http;
+					delete results.https;
 				}
-				else {
-					self.log(body);
-				}			
+
+				for (var k in results) {
+					var res = results[k];
+					var body = res.body;
+
+					var expectedStatus = c.error ? c.error : 200;
+					test.equals(res.statusCode, expectedStatus, c.from);
+					test.equals(res.headers['content-type'], "application/json");
+
+					if (res.statusCode === 200) {
+						body = JSON.parse(body);
+
+						test.equals(body.url, c.path, "Expecting URL passed to app should be " + c.path);
+						
+						if (c.spawn) {
+							var expectedScript = path.normalize(c.spawn.replace('$', path.join(__dirname, 'workdir')));
+							test.equals(body.argv[1], expectedScript, "Expecting script to be " + expectedScript);
+						}
+
+						test.equals(body.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
+						test.equals(body.headers[farmjs.HEADER_APP], c.app, "Expecting app to be " + c.app);
+						test.ok(body.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
+					}
+					else if (res.statusCode !== expectedStatus) {
+						self.log(body);
+					}			
+				}
+
 			}
 
 			next();
 		});
 	},
-	
 	function(err) {
 		test.ok(!err, err);
 		test.done();
