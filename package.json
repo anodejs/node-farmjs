@@ -44,7 +44,8 @@
     "devDependencies": {
         "nodeunit": "0.6.x",
         "dox": "0.1.x",
-        "logule": "0.5.x"
+        "logule": "0.5.x",
+        "portscanner": "0.1.x"
     },
     "repository": {
         "type": "git",

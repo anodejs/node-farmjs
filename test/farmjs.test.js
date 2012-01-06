@@ -1,28 +1,15 @@
 var fs = require('fs');
 var path = require('path');
-var urlparser = require('url');
-var http = require('http');
-var https = require('https');
 
-var express = require('express');
-var request = require('request');
 var async = require('async');
-var logule = require('logule');
 
 var farmjs = require('../main');
+var instman = require('./instman').createInstanceManager();
 
 var tests = { };
-
 tests.setUp = function(cb) {
-
 	var self = this;
-	self.servers = [];
 	
-	var port = self.port = 5080;
-	var securePort = self.securePort = 5443;
-	var webserverPort = self.webserverPort = 8000;
-	
-
 	/**
 	 * Helper log function so it will be easy to differeciate test logs from other stuff
 	 */
@@ -34,122 +21,13 @@ tests.setUp = function(cb) {
 		console.info.apply(console, args);
 	}
 
-	/**
-	 * Helper request method. Uses the x-farmjs-url header to override
-	 * URL when sending a request to localhost.
-	 */
+	self.instman = instman;
 	self.req = function(url, callback) {
-
-		var parsed = urlparser.parse(url);
-
-		//
-		// For every URL, we are issuing three requests:
-		//  (1) Plain old HTTP (expect to fail for non-public apps)
-		//  (2) HTTPS without a client cert (expect to fail for non-public apps)
-		//  (3) HTTPS with a client cert (expect to succeed on all)
-		//
-
-		function request(protocol, port, cert) {
-			return function(cb) {
-
-				var options = {
-				  host: 'localhost',
-				  port: port,
-				  path: parsed.path,
-				  method: 'GET',
-				  headers: {},
-				  agent: false,
-				};
-
-				if (cert) {
-				  options.key = self.readAssetSync('cc_private.pem');
-				  options.cert = self.readAssetSync('cc_public.pem');
-				}
-
-				options.headers[farmjs.HEADER_URL] = url;
-
-				var req = protocol.request(options, function(res) {
-					var body = '';
-					res.on('data', function(data) {
-						body += data.toString();
-					});
-					res.on('end', function(){
-						res.body = body;
-						cb(null, res);
-					});
-				});
-
-				req.on('error', function(e) {
-					cb(e);
-				});
-
-				req.end();			
-			}
-		}
-
-		async.parallel(
-		[
-			request(http, port, false),
-			request(https, securePort, false),
-			request(https, securePort, true),
-		], 
-		function(err, results) {
-
-			var result = {
-				'http': results[0],
-				'https': results[1],
-				'authHttps': results[2]
-			};
-
-			callback(null, result);
-		});
+		return self.instman.req('inst0', url, callback);
 	};
 
-	/**
-	 * Returns a path to a test asset
-	 */
-	self.asset = function(fileName) {
-		return path.join(__dirname, 'assets', fileName); 
-	};
-
-	/**
-	 * Returns the contents of a test asset
-	 */
-	self.readAssetSync = function(fileName) {
-		return fs.readFileSync(self.asset(fileName));
-	};
-
-	//
-	// Create farm object
-	//
-
-	self.farmjs = farmjs.create({
-		logger: logule
-	});
-
-	self.farmjs.addParentDomain("anodejs.org");
-	self.farmjs.getAppByName = appsResolver(webserverPort);
-
-	//
-	// Create an HTTP server for proxying non-spawned requests (simluates a web server)
-	//
-
-	var webServer = http.createServer(function(req, res) {
-		var echo = {
-			webserver: true,
-			port: process.env.PORT,
-			argv: process.argv,
-			url: req.url,
-			headers: req.headers,
-		};
-
-		res.writeHead(200, { "content-type": "application/json" });
-		res.end(JSON.stringify(echo, true, 2));
-	}).listen(webserverPort);
-
-	self.servers.push(webServer);
-
-	cb();
+	self.log('SETUP');
+	return self.instman.startMany(5, cb);
 };
 
 var inner = tests.setUp;
@@ -164,38 +42,12 @@ tests.setUp = function(cb) {
 tests.tearDown = function(cb) {
 	var self = this;
 	self.log('TEARDOWN');
-	self.farmjs.close();
-	self.servers.forEach(function(app) { app.close(); });
+	self.instman.close();
 	cb();
 };
 
 tests.t1 = function(test) {
 	var self = this;
-
-	//
-	// Start http server and connect farmjs to it
-	// 
-
-	var http = express.createServer();
-	http.listen(self.port);
-	http.use(self.farmjs.connect());
-	self.servers.push(http);
-
-	//
-	// Start https server with client cert
-	//
-
-	var https = express.createServer({
-        key: self.readAssetSync('private.pem'),
-        cert: self.readAssetSync('public.pem'),
-        ca: [ self.readAssetSync('cc_public.pem') ],
-		requestCert: true,
-        rejectUnauthorized: false,
-	});
-
-	https.listen(self.securePort);
-	https.use(self.farmjs.connect());
-	self.servers.push(https);
 
 	//
 	// Iterate through all the cases and run them (in parallel !)
@@ -261,88 +113,3 @@ tests.t1 = function(test) {
 };
 
 exports.tests = require('nodeunit').testCase(tests);
-
-// --- impl
-
-// c
-function createInstance(id, farmjs) {
-	
-}
-
-// returns an app resolver function which resolves apps based
-// the contents of 'workdir/app.json'.
-function appsResolver(webServerPort) {
-	if (!webServerPort) throw new Error('webServerPort required');
-	
-	var workdir = path.join(__dirname, 'workdir');
-	var appsData = fs.readFileSync(path.join(workdir, 'apps.json'));
-	var apps = JSON.parse(appsData);
-
-	// add path to index file, damn it
-	for (var appname in apps) {
-		var app = apps[appname];
-
-		if (app.type === "node") {
-			var script = path.join(workdir, app.index);
-			app.spawn = {
-				name: app.name,
-				command: process.execPath,
-				args: [ script ],
-				monitor: script,
-			};
-
-			// this will be the contents of the index file.
-			var indexTemplate = function() {
-				var http = require('http');
-
-				http.createServer(function(req, res) {
-
-					var echo = {
-						port: process.env.PORT,
-						argv: process.argv,
-						url: req.url,
-						headers: req.headers,
-					};
-
-					res.writeHead(200, { "content-type": "application/json" });
-					res.end(JSON.stringify(echo, true, 2));
-					
-				}).listen(process.env.PORT);
-				
-				console.log('app started on port', process.env.PORT);
-			};
-
-			var indexContents = "(" + indexTemplate.toString() + ")();";
-			fs.writeFileSync(script, indexContents);
-		}
-		else {
-
-			app.proxy = {
-				host: 'localhost',
-				port: webServerPort,
-				headers: {
-					'x-nospawn': 'yes',
-					'x-anodejs-rewrite': app.index
-				}
-			};
-
-		}
-	}
-
-	/*
-	var jsonFile = path.join(__dirname, "apps." + Math.round(Math.random() * 10000) + ".json");
-	fs.writeFileSync(jsonFile, JSON.stringify(self.apps, true, 2));
-	self.log("Apps stored under:", jsonFile);
-	*/
-
-	return function(logger, name, callback) {
-		logger.info('getappbyname called with', name);
-
-		if (!(name in apps)) {
-			callback(new Error("app '" + name + "' not found"));
-			return;
-		}
-
-		callback(null, apps[name]);
-	};
-}
