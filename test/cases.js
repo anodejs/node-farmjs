@@ -40,6 +40,11 @@ exports.apps = [
     { from: 'http://hello.world.anodejs.org/', headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
     { from: 'http://anodejs.org/hello.world', headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
 
+    // $inst will direct the request to a different instance of the farm. the harness creates
+    // a farm with three instances: 'inst0', 'inst1' and 'inst2'.
+    { from: 'http://test.anodejs.org/path?q=1&$inst=unknown', error: 400 },
+    { from: 'http://test.anodejs.org/path?q=1&$inst=inst1', app: 'test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/path?q=1' },
+
 //    { from: 'http://test.anodejs.org/a/b?$llog=BADINST', error: 404 },
 //    { from: 'http://test.anodejs.org/a/b?$llog', error: 400 },
 //    { from: 'http://hello.world.anodejs.org/a/b/c?$llog', spawn: '$/master/apps/world/hello/index.aspx', path:'/a/b/c' },
