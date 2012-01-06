@@ -1,0 +1,4 @@
+{ 
+    "public": true,
+    "worker": true
+}

@@ -1,0 +1,347 @@
+{
+  "foogoo.branch9": {
+    "name": "foogoo.branch9",
+    "dir": "branch9/apps/foogoo",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/branch9/apps/foogoo",
+    "branch": "branch9",
+    "default": false,
+    "basename": "foogoo",
+    "index": "branch9/apps/foogoo/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "index.js",
+      "mtime": "2011-12-08T06:52:37.000Z"
+    },
+    "log": "branch9/apps/foogoo/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/branch9/apps/foogoo/.shimmed.v2.index.js",
+      "index": "branch9/apps/foogoo/index.js",
+      "log": "branch9/apps/foogoo/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/foogoo.branch9",
+    "localURL": "http://127.0.0.1:8888/foogoo.branch9",
+    "endpoints": {
+      "local": "http://127.0.0.1/foogoo.branch9"
+    }
+  },
+  "rp.sys.branch9": {
+    "name": "rp.sys.branch9",
+    "dir": "branch9/sys/rp",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/branch9/sys/rp",
+    "branch": "branch9",
+    "default": false,
+    "basename": "rp.sys",
+    "index": "branch9/sys/rp/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "index.js",
+      "mtime": "2011-12-20T16:17:51.000Z"
+    },
+    "log": "branch9/sys/rp/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/branch9/sys/rp/.shimmed.v2.index.js",
+      "index": "branch9/sys/rp/index.js",
+      "log": "branch9/sys/rp/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/rp.sys.branch9",
+    "localURL": "http://127.0.0.1:8888/rp.sys.branch9",
+    "worker": true,
+    "blocked": "app is blocked because it is defined as a worker and workers can only run from the default branch ('rp.sys')",
+    "endpoints": {
+      "local": "http://127.0.0.1/rp.sys.branch9"
+    }
+  },
+  "direct": {
+    "name": "direct",
+    "dir": "master/apps/direct",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/direct",
+    "branch": "master",
+    "default": true,
+    "basename": "direct",
+    "port": 5680,
+    "index": "master/apps/direct/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "anode.app",
+      "mtime": "2011-12-08T06:52:37.000Z"
+    },
+    "log": "master/apps/direct/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/direct/.shimmed.v2.index.js",
+      "index": "master/apps/direct/index.js",
+      "log": "master/apps/direct/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/direct",
+    "localURL": "http://127.0.0.1:8888/direct",
+    "worker": true,
+    "keepAlive": true,
+    "endpoints": {
+      "local": "http://127.0.0.1/direct"
+    }
+  },
+  "direct-alias": {
+    "name": "direct-alias",
+    "dir": "master/apps/direct-alias",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/direct-alias",
+    "branch": "master",
+    "default": true,
+    "basename": "direct-alias",
+    "type": "alias",
+    "alias": {
+      "target": "direct"
+    },
+    "modified": {
+      "path": "anode.app",
+      "mtime": "2011-12-08T06:52:37.000Z"
+    },
+    "public": false,
+    "index": "master/apps/direct/.shimmed.v2.index.js",
+    "port": 5680,
+    "internalURL": "https://www.anodejs.org:444/direct-alias",
+    "localURL": "http://127.0.0.1:8888/direct-alias",
+    "worker": true,
+    "keepAlive": true,
+    "endpoints": {
+      "local": "http://127.0.0.1/direct-alias"
+    }
+  },
+  "direct2": {
+    "name": "direct2",
+    "dir": "master/apps/direct2",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/direct2",
+    "branch": "master",
+    "default": true,
+    "basename": "direct2",
+    "port": 5690,
+    "index": "master/apps/direct2/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "anode.app",
+      "mtime": "2011-12-08T06:52:37.000Z"
+    },
+    "log": "master/apps/direct2/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/direct2/.shimmed.v2.index.js",
+      "index": "master/apps/direct2/index.js",
+      "log": "master/apps/direct2/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/direct2",
+    "localURL": "http://127.0.0.1:8888/direct2",
+    "worker": true,
+    "keepAlive": true,
+    "endpoints": {
+      "local": "http://127.0.0.1/direct2"
+    }
+  },
+  "home": {
+    "name": "home",
+    "dir": "master/apps/home",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/home",
+    "branch": "master",
+    "default": true,
+    "basename": "home",
+    "index": "master/apps/home/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "index.js",
+      "mtime": "2011-12-08T17:50:14.000Z"
+    },
+    "log": "master/apps/home/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/home/.shimmed.v2.index.js",
+      "index": "master/apps/home/index.js",
+      "log": "master/apps/home/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/home",
+    "localURL": "http://127.0.0.1:8888/home",
+    "endpoints": {
+      "local": "http://127.0.0.1/home"
+    }
+  },
+  "hooligan": {
+    "name": "hooligan",
+    "dir": "master/apps/hooligan",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/hooligan",
+    "branch": "master",
+    "default": true,
+    "basename": "hooligan",
+    "index": "master/apps/hooligan/index.svc",
+    "type": "wcf",
+    "modified": {
+      "path": "index.svc",
+      "mtime": "2011-12-08T17:50:14.000Z"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/hooligan",
+    "localURL": "http://127.0.0.1:8888/hooligan",
+    "endpoints": {
+      "local": "http://127.0.0.1/hooligan"
+    }
+  },
+  "public": {
+    "name": "public",
+    "dir": "master/apps/public",
+    "branch": "master",
+    "default": true,
+    "basename": "public",
+    "index": "master/apps/public/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "anode.app",
+      "mtime": "2011-12-08T17:50:14.000Z"
+    },
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "index": "master/apps/public/index.js",
+      "log": "master/apps/public/index.js.logs/0.txt"
+    },
+    "public": true,
+    "internalURL": "https://www.anodejs.org:444/public",
+    "localURL": "http://127.0.0.1:8888/public",
+    "endpoints": {
+      "local": "http://127.0.0.1/public"
+    }
+  },
+  "test": {
+    "name": "test",
+    "dir": "master/apps/test",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/test",
+    "branch": "master",
+    "default": true,
+    "basename": "test",
+    "index": "master/apps/test/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "index.js",
+      "mtime": "2011-12-08T17:50:14.000Z"
+    },
+    "log": "master/apps/test/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/test/.shimmed.v2.index.js",
+      "index": "master/apps/test/index.js",
+      "log": "master/apps/test/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/test",
+    "localURL": "http://127.0.0.1:8888/test",
+    "endpoints": {
+      "local": "http://127.0.0.1/test"
+    }
+  },
+  "hello.world": {
+    "name": "hello.world",
+    "dir": "master/apps/world/hello",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/world/hello",
+    "branch": "master",
+    "default": true,
+    "basename": "hello.world",
+    "index": "master/apps/world/hello/index.aspx",
+    "type": "asp",
+    "modified": {
+      "path": "index.aspx",
+      "mtime": "2011-12-08T17:50:14.000Z"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/hello.world",
+    "localURL": "http://127.0.0.1:8888/hello.world",
+    "endpoints": {
+      "local": "http://127.0.0.1/hello.world"
+    }
+  },
+  "bcast.sys": {
+    "name": "bcast.sys",
+    "dir": "master/sys/bcast",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/sys/bcast",
+    "branch": "master",
+    "default": true,
+    "basename": "bcast.sys",
+    "public": true,
+    "index": "master/sys/bcast/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "anode.app",
+      "mtime": "2011-12-18T10:02:04.000Z"
+    },
+    "log": "master/sys/bcast/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/sys/bcast/.shimmed.v2.index.js",
+      "index": "master/sys/bcast/index.js",
+      "log": "master/sys/bcast/index.js.logs/0.txt"
+    },
+    "externalURL": "http://www.anodejs.org/bcast.sys",
+    "internalURL": "https://www.anodejs.org:444/bcast.sys",
+    "localURL": "http://127.0.0.1:8888/bcast.sys",
+    "endpoints": {
+      "local": "http://127.0.0.1/bcast.sys"
+    }
+  },
+  "pull.sys": {
+    "name": "pull.sys",
+    "dir": "master/sys/pull",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/sys/pull",
+    "branch": "master",
+    "default": true,
+    "basename": "pull.sys",
+    "index": "master/sys/pull/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "index.js",
+      "mtime": "2011-12-08T06:52:37.000Z"
+    },
+    "log": "master/sys/pull/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/sys/pull/.shimmed.v2.index.js",
+      "index": "master/sys/pull/index.js",
+      "log": "master/sys/pull/index.js.logs/0.txt"
+    },
+    "public": false,
+    "internalURL": "https://www.anodejs.org:444/pull.sys",
+    "localURL": "http://127.0.0.1:8888/pull.sys",
+    "endpoints": {
+      "local": "http://127.0.0.1/pull.sys"
+    }
+  },
+  "rp.sys": {
+    "name": "rp.sys",
+    "dir": "master/sys/rp",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/sys/rp",
+    "branch": "master",
+    "default": true,
+    "basename": "rp.sys",
+    "public": true,
+    "worker": true,
+    "index": "master/sys/rp/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "anode.app",
+      "mtime": "2011-12-20T16:17:51.000Z"
+    },
+    "log": "master/sys/rp/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/sys/rp/.shimmed.v2.index.js",
+      "index": "master/sys/rp/index.js",
+      "log": "master/sys/rp/index.js.logs/0.txt"
+    },
+    "externalURL": "http://www.anodejs.org/rp.sys",
+    "internalURL": "https://www.anodejs.org:444/rp.sys",
+    "localURL": "http://127.0.0.1:8888/rp.sys",
+    "keepAlive": true,
+    "endpoints": {
+      "local": "http://127.0.0.1/rp.sys"
+    }
+  }
+}
