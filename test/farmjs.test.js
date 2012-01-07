@@ -57,7 +57,7 @@ tests.t1 = function(test) {
 	//
 
 	var cases = require('./cases').apps;
-	async.forEachSeries(cases, function(c, next) {
+	async.forEach(cases, function(c, next) {
 		self.log("CASE: " + JSON.stringify(c));
 
 		//

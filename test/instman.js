@@ -146,10 +146,8 @@ InstanceManager.prototype.startMany = function(count, callback) {
 	for (var i = 0; i < count; ++i) range.push(i);
 
 	function _createInstance(i, cb) {
-		var id = 'inst' + i;
-		return self.start(id, function(err, inst) {
+		return self.start(i, function(err, inst) {
 			if (err) return cb(err);
-			instances[id] = inst;
 			return cb();
 		});
 	}
@@ -165,15 +163,19 @@ InstanceManager.prototype.startMany = function(count, callback) {
 // creates a farmjs instance which contains the following endpoints
 //  1. http: a farmjs http:// router
 //  2. https: a farmjs https:// router that requests client certs for private apps
-//  3. web: a web server
+//  3. internal: a farmjs http:// router without requirement for a client cert for private apps
+//  4. web: a simple http web server for 'proxy' type requests
 //
 // calls `callback` with a hash with port numbers for each of those endpoints.
 // uses `portscanner` to find available ports.
 //
-InstanceManager.prototype.start = function(id, callback) {
+InstanceManager.prototype.start = function(index, callback) {
 	var self = this;
-	if (!id) throw new Error('id is required');
 	if (!callback) callback = function() { };
+
+	var id = 'inst' + index;
+
+	if (self.instances[id]) throw new Error("instance " + id + " already started");
 
 	var range = [ 4000, 4999 ];
 
@@ -205,7 +207,18 @@ InstanceManager.prototype.start = function(id, callback) {
 			}).listen(port);
 
 
-			router = farmjs.createRouter({ logger: self.logger.pushctx(id), instance: id });
+			var spinnerRangeStart = 7000 + 100 * index;
+			var spinnerRangeEnd = spinnerRangeStart + 100 - 1;
+			var spinnerRange = [ spinnerRangeStart, spinnerRangeEnd ];
+			console.log('range:', spinnerRange);
+
+			var routerOptions = {
+ 				logger: self.logger.pushctx(id), 
+ 				instance: id,
+ 				range: spinnerRange,
+			};
+
+			router = farmjs.createRouter(routerOptions);
 			router.addParentDomain("anodejs.org");
 			router.getAppByName = appresolver(port);
 
