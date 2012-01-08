@@ -239,6 +239,34 @@
       "local": "http://127.0.0.1/test"
     }
   },
+  "httpsonly": {
+    "name": "httpsonly",
+    "dir": "master/apps/httpsonly",
+    "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/httpsonly",
+    "branch": "master",
+    "default": true,
+    "basename": "httpsonly",
+    "index": "master/apps/httpsonly/.shimmed.v2.index.js",
+    "type": "node",
+    "modified": {
+      "path": "index.js",
+      "mtime": "2011-12-08T17:50:14.000Z"
+    },
+    "log": "master/apps/httpsonly/.shimmed.v2.index.js.logs/0.txt",
+    "shim": {
+      "contents": "require('anode').shimme.require(__dirname, 'index');",
+      "path": "/users/eladb/desktop/anode/master/node_modules/anode/tests/rptests-appsroot/master/apps/httpsonly/.shimmed.v2.index.js",
+      "index": "master/apps/httpsonly/index.js",
+      "log": "master/apps/httpsonly/index.js.logs/0.txt"
+    },
+    "public": false,
+    "secure": true,
+    "internalURL": "https://www.anodejs.org:444/httpsonly",
+    "localURL": "http://127.0.0.1:8888/httpsonly",
+    "endpoints": {
+      "local": "http://127.0.0.1/httpsonly"
+    }
+  },
   "hello.world": {
     "name": "hello.world",
     "dir": "master/apps/world/hello",

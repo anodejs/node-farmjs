@@ -7,6 +7,9 @@ var farmjs = require('../main');
 var instman = require('./instman');
 var logule = require('logule');
 
+var defaultExpectations = require('./cases').$default;
+console.log(defaultExpectations);
+
 logule.suppress('trace');
 
 var tests = { };
@@ -26,10 +29,6 @@ tests.setUp = function(cb) {
 
 	self.instman = instman.createInstanceManager({ logger: logule });
 	
-	self.req = function(url, callback) {
-		return self.instman.req('inst0', url, callback);
-	};
-
 	self.ok = function(test, c, condition, msg) {
 		var m = c.from;
 		if (msg) m += ": " + msg;
@@ -69,9 +68,9 @@ tests.all = function(test) {
 	// Iterate through all the cases and run them (in parallel !)
 	//
 
-	var cases = require('./cases').apps;
+	var cases = require('./cases').tests;
 	async.forEach(cases, function(c, next) {
-		self.log("CASE: " + JSON.stringify(c));
+		//self.log("CASE: " + JSON.stringify(c));
 
 		//
 		// Send request to all instances and verify they all behave as expected
@@ -80,48 +79,89 @@ tests.all = function(test) {
 		self.instman.reqall(c.from, function(err, allresults) {
 			self.ok(test, c, !err);
 
-			for (var id in allresults) {
-				var results = allresults[id];
+			if (!c.expected) throw new Error("Invalid test case, 'expected' is required");
 
-				//
-				// If the request does not target a public app, we expect 401 from both 'http' and 'https' endpoints
-				//
+			function assertExpected(res, expected, inst) {
+				//self.log(c.from, '==>', expected);
 
-				if (!c.public && c.error !== 404) {
-					self.equals(test, c, results.http.statusCode, 401);
-					self.equals(test, c, results.https.statusCode, 401);
-					delete results.http;
-					delete results.https;
+				if (expected.status) {
+					self.equals(test, c, res.statusCode, expected.status);
 				}
 
-				for (var k in results) {
-					var res = results[k];
-					var body = res.body;
+				// this means that we can use the echo response to check a few more things
+				if (expected.status === 200) {
+					var echo = JSON.parse(res.body);
 
-					var expectedStatus = c.error ? c.error : 200;
-					self.equals(test, c, res.statusCode, expectedStatus, c.from);
 					self.equals(test, c, res.headers['content-type'], "application/json");
 
-					if (res.statusCode === 200) {
-						body = JSON.parse(body);
+					// check some 'must-exist' headers
+					self.ok(test, c, echo.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
+					self.equals(test, c, echo.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
 
-						self.equals(test, c, body.url, c.path, "Expecting URL passed to app should be " + c.path);
-						
-						if (c.spawn) {
-							var expectedScript = path.normalize(c.spawn.replace('$', path.join(__dirname, 'workdir')));
-							self.equals(test, c, body.argv[1], expectedScript, "Expecting script to be " + expectedScript);
+					if (expected.headers) {
+						for (var h in expected.headers) {
+							self.equals(test, c, echo.headers[h], expected.headers[h]);
 						}
-
-						self.equals(test, c, body.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
-						self.equals(test, c, body.headers[farmjs.HEADER_APP], c.app, "Expecting app to be " + c.app);
-						self.ok(test, c, body.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
-						self.equals(test, c, body.appbasename, c.app, "Expecting app to be " + c.app);
-						if (c.instance) self.equals(test, c, body.inst, c.instance, "Expecting response from instance " + c.instance);
-						if (c.proxy) self.ok(test, c, body.webserver, "Expecting response to come from webserver");
 					}
-					else if (res.statusCode !== expectedStatus) {
-						self.log(body);
-					}			
+
+					var expectedURL = expected.url || "/";
+					if (expectedURL) {
+						self.equals(test, c, echo.url, expectedURL, "Expecting URL passed to app should be " + expectedURL);
+					}
+
+					if (expected.app) {
+						self.equals(test, c, echo.headers[farmjs.HEADER_APP], expected.app, "Expecting app to be " + expected.app);
+						self.equals(test, c, echo.appbasename, expected.app, "Expecting app to be " + expected.app);
+					}
+
+					if (expected.spawn) {
+						var expectedScript = path.normalize(expected.spawn.replace('$', path.join(__dirname, 'workdir')));
+						self.equals(test, c, echo.argv[1], expectedScript, "Expecting script to be " + expectedScript);
+					}
+
+					if (expected.instance) {
+						self.equals(test, c, echo.inst, expected.instance, "Expecting response from instance " + expected.instance);
+					}
+					else {
+						self.equals(test, c, echo.inst, inst, "Expecting instance to be the one we sent the request to");
+					}
+
+					if (expected.proxy) {
+						self.ok(test, c, echo.webserver, "Expecting response to come from webserver");
+					}
+				}
+				else {
+					if (expected.redirect) {
+						self.equals(test, c, res.headers.location, expected.redirect, "Expecting redirect location to be " + expected.redirect);
+					}
+
+					if (expected.body) {
+						self.equals(test, c, res.headers['content-type'], "application/json", "Body is expected, so we need json");
+
+						var body = JSON.parse(res.body);
+						for (var k in expected.body) {
+							self.equals(test, c, body[k], expected.body[k], "Expecting body to contain " + k + ": " + expected.body[k]);
+						}
+					}
+				}
+			}
+
+			for (var inst in allresults) {
+				var results = allresults[inst];
+				for (var endpoint in results) {
+					var expected = {};
+					var globalDefaults = defaultExpectations[endpoint];
+					for (var k in globalDefaults) expected[k] = globalDefaults[k];
+
+					var caseDefaults = c.expected.$default;
+					if (caseDefaults) {
+						for (var k in caseDefaults) expected[k] = caseDefaults[k];
+					}
+
+					var exp = c.expected[endpoint];
+					for (var k in exp) expected[k] = exp[k];
+
+					assertExpected(results[endpoint], expected, inst);
 				}
 			}
 
