@@ -1,4 +1,1 @@
-node_modules
-npm-debug.log
-.shimmed.*
-.DS_Store
+.gitignore
