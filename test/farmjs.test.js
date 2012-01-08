@@ -25,9 +25,22 @@ tests.setUp = function(cb) {
 	}
 
 	self.instman = instman.createInstanceManager({ logger: logule });
+	
 	self.req = function(url, callback) {
 		return self.instman.req('inst0', url, callback);
 	};
+
+	self.ok = function(test, c, condition, msg) {
+		var m = c.from;
+		if (msg) m += ": " + msg;
+		return test.ok(condition, m);
+	};
+
+	self.equals = function(test, c, obj1, obj2, msg) {
+		var m = c.from;
+		if (msg) m += ": " + msg;
+		return test.deepEqual(obj1, obj2, m);
+	}
 
 	self.log('SETUP');
 	return self.instman.startMany(5, cb);
@@ -49,7 +62,7 @@ tests.tearDown = function(cb) {
 	cb();
 };
 
-tests.t1 = function(test) {
+tests.all = function(test) {
 	var self = this;
 
 	//
@@ -65,7 +78,7 @@ tests.t1 = function(test) {
 		//
 
 		self.instman.reqall(c.from, function(err, allresults) {
-			test.ok(!err, err);
+			self.ok(test, c, !err);
 
 			for (var id in allresults) {
 				var results = allresults[id];
@@ -75,8 +88,8 @@ tests.t1 = function(test) {
 				//
 
 				if (!c.public && c.error !== 404) {
-					test.equals(results.http.statusCode, 401);
-					test.equals(results.https.statusCode, 401);
+					self.equals(test, c, results.http.statusCode, 401);
+					self.equals(test, c, results.https.statusCode, 401);
 					delete results.http;
 					delete results.https;
 				}
@@ -86,22 +99,25 @@ tests.t1 = function(test) {
 					var body = res.body;
 
 					var expectedStatus = c.error ? c.error : 200;
-					test.equals(res.statusCode, expectedStatus, c.from);
-					test.equals(res.headers['content-type'], "application/json");
+					self.equals(test, c, res.statusCode, expectedStatus, c.from);
+					self.equals(test, c, res.headers['content-type'], "application/json");
 
 					if (res.statusCode === 200) {
 						body = JSON.parse(body);
 
-						test.equals(body.url, c.path, "Expecting URL passed to app should be " + c.path);
+						self.equals(test, c, body.url, c.path, "Expecting URL passed to app should be " + c.path);
 						
 						if (c.spawn) {
 							var expectedScript = path.normalize(c.spawn.replace('$', path.join(__dirname, 'workdir')));
-							test.equals(body.argv[1], expectedScript, "Expecting script to be " + expectedScript);
+							self.equals(test, c, body.argv[1], expectedScript, "Expecting script to be " + expectedScript);
 						}
 
-						test.equals(body.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
-						test.equals(body.headers[farmjs.HEADER_APP], c.app, "Expecting app to be " + c.app);
-						test.ok(body.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
+						self.equals(test, c, body.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
+						self.equals(test, c, body.headers[farmjs.HEADER_APP], c.app, "Expecting app to be " + c.app);
+						self.ok(test, c, body.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
+						self.equals(test, c, body.appbasename, c.app, "Expecting app to be " + c.app);
+						if (c.instance) self.equals(test, c, body.inst, c.instance, "Expecting response from instance " + c.instance);
+						if (c.proxy) self.ok(test, c, body.webserver, "Expecting response to come from webserver");
 					}
 					else if (res.statusCode !== expectedStatus) {
 						self.log(body);

@@ -7,7 +7,6 @@
  * Node.js apps spawned and port-allocated automatically upon request
  */
 exports.apps = [
-
     // spawn a few node.js apps, test a few url and query variations
     { from: 'http://anodejs.cloudapp.net/apps?$app=test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/apps', app: 'test' },
     { from: 'http://test.anodejs.org/1/2/3/4?q=5', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/1/2/3/4?q=5', app: 'test' },
@@ -36,14 +35,16 @@ exports.apps = [
     // this app is marked as 'proxy' and not 'spawn', in which case we do not expect anything to be
     // spawned, but we expect the request to be proxied appropriately and headers piggybacked on
     // the request. hello.world is also public, so verify that as well.
-    { from: 'http://anodejs.cloudapp.net/hooligan/foo/goo?a=6', headers: { 'x-anodejs-rewrite': 'master/apps/hooligan/index.svc' }, path: '/foo/goo?a=6', app: 'hooligan' },
-    { from: 'http://hello.world.anodejs.org/', headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
-    { from: 'http://anodejs.org/hello.world', headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
+    { from: 'http://anodejs.cloudapp.net/hooligan/foo/goo?a=6', proxy: true, headers: { 'x-anodejs-rewrite': 'master/apps/hooligan/index.svc' }, path: '/foo/goo?a=6', app: 'hooligan' },
+    { from: 'http://hello.world.anodejs.org/', proxy: true, headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
+    { from: 'http://anodejs.org/hello.world', proxy: true, headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, path: '/', app: 'hello.world', public: true },
 
-    // $inst will direct the request to a different instance of the farm. the harness creates
-    // a farm with three instances: 'inst0', 'inst1' and 'inst2'.
+    // $inst will direct the request to a different instance of the farm. the test harness creates
+    // a farm with 5 instances.
     { from: 'http://test.anodejs.org/path?q=1&$inst=unknown', error: 400 },
-    { from: 'http://test.anodejs.org/path?q=1&$inst=inst1', app: 'test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/path?q=1' },
+    { from: 'http://test.anodejs.org/path?q=1&$inst=inst1', app: 'test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/path?q=1', instance: 'inst1' },
+    { from: 'http://test.anodejs.org/path?q=1&$inst=inst2', app: 'test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/path?q=1', instance: 'inst2' },
+    { from: 'http://test.anodejs.org/path?q=1&$inst=inst4', app: 'test', spawn: '$/master/apps/test/.shimmed.v2.index.js', path: '/path?q=1', instance: 'inst4' },
 
 //    { from: 'http://test.anodejs.org/a/b?$llog=BADINST', error: 404 },
 //    { from: 'http://test.anodejs.org/a/b?$llog', error: 400 },

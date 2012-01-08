@@ -3,8 +3,9 @@ var fs = require('fs');
 
 // returns an app resolver function which resolves apps based
 // the contents of 'workdir/app.json'.
-module.exports = function(webServerPort) {
+module.exports = function(webServerPort, instanceID) {
 	if (!webServerPort) throw new Error('webServerPort required');
+	if (!instanceID) throw new Error("instanceID required");
 	
 	var workdir = path.join(__dirname, 'workdir');
 	var appsData = fs.readFileSync(path.join(workdir, 'apps.json'));
@@ -24,12 +25,15 @@ module.exports = function(webServerPort) {
 			};
 
 			// this will be the contents of the index file.
-			var indexTemplate = function() {
+			var indexTemplate = function(instanceID) {
 				var http = require('http');
 
 				http.createServer(function(req, res) {
 
 					var echo = {
+						appname: process.env.FARMJS_APP_FULLNAME,
+						appbasename: process.env.FARMJS_APP,
+						inst: process.env.FARMJS_INSTANCE,
 						port: process.env.PORT,
 						argv: process.argv,
 						url: req.url,

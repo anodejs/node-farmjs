@@ -194,7 +194,9 @@ InstanceManager.prototype.start = function(index, callback) {
 
 				var echo = {
 					webserver: true,
-					instance: id,
+					appbasename: req.headers[farmjs.HEADER_APP],
+					appname: req.headers[farmjs.HEADER_APP_FULLNAME],
+					inst: id,
 					port: process.env.PORT,
 					argv: process.argv,
 					url: req.url,
@@ -210,7 +212,6 @@ InstanceManager.prototype.start = function(index, callback) {
 			var spinnerRangeStart = 7000 + 100 * index;
 			var spinnerRangeEnd = spinnerRangeStart + 100 - 1;
 			var spinnerRange = [ spinnerRangeStart, spinnerRangeEnd ];
-			console.log('range:', spinnerRange);
 
 			var routerOptions = {
  				logger: self.logger.pushctx(id), 
@@ -220,7 +221,7 @@ InstanceManager.prototype.start = function(index, callback) {
 
 			router = farmjs.createRouter(routerOptions);
 			router.addParentDomain("anodejs.org");
-			router.getAppByName = appresolver(port);
+			router.getAppByName = appresolver(port, id);
 
 			router.getInstanceByID = function(id, callback) {
 				var inst = self.instances[id];
