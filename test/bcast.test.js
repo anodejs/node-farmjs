@@ -65,7 +65,7 @@ exports.broadcast = require('nodeunit').testCase({
 					host: 'localhost',
 					port: server.port,
 					headers: { x: '1234 '},
-					timeout: 1000,
+					timeout: 5000,
 				});
 			});
 
@@ -130,6 +130,7 @@ exports.broadcast = require('nodeunit').testCase({
 
 		// now send the broadcast
 		return bcast.broadcast(self.requests, function(err, results) {
+		    
 			var numberOfErrors = 0;
 			
 			for (var k in results) {
@@ -157,7 +158,7 @@ exports.broadcast = require('nodeunit').testCase({
 			var server = self.servers[s];
 			server.removeAllListeners('request');
 			server.on('request', function(req, res) {
-				return setTimeout(function() { res.end(); }, 3000);
+				return setTimeout(function() { res.end(); }, 10000);
 			});
 		}
 
