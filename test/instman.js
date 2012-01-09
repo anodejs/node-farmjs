@@ -10,6 +10,7 @@ var farmjs = require('../main');
 var appresolver = require('./appresolver');
 var fs = require('fs');
 var path = require('path');
+var request = require('request');
 
 function InstanceManager(options) {
 	var self = this;
@@ -18,6 +19,15 @@ function InstanceManager(options) {
 
 	self.instances = {};
 	self.logger = ctxconsole(options.logger);
+
+	self.postBody = fs.readFileSync(_assetPath('small.html'));
+	self.postBodyLength = self.postBody.length;
+
+	self.clientCert = {
+		key: fs.readFileSync(_assetPath('cc_private.pem')),
+		cert: fs.readFileSync(_assetPath('cc_public.pem')),
+	};
+
 	return self;
 }
 
@@ -41,19 +51,36 @@ InstanceManager.prototype.close = function() {
 // 
 // Sends a request to all farm instances.
 //
-InstanceManager.prototype.reqall = function(url, callback) {
+InstanceManager.prototype.reqall = function(url, methods, callback) {
 	var self = this;
 	var results = {};
-	return async.forEachSeries(Object.keys(self.instances), function(id, cb) {
-		self.req(id, url, function(err, res) {
-			if (err) return cb(err);
-			results[id] = res;
+
+	//
+	// prepare the resultset
+	//
+
+	var reqd = [];
+	var results = {};
+
+	for (var id in self.instances) {
+		results[id] = {};
+		methods.forEach(function(method) {
+			results[id][method] = {};
+			reqd.push({ inst: id, method: method });
+		});
+	}
+
+	return async.forEachSeries(reqd, function(d, cb) {
+		return self.req(d.inst, d.method, url, function(err, res) {
+			if (err) results[d.inst][d.method] = { err: err };
+			else results[d.inst][d.method] = res;
 			return cb();
 		});
+
 	}, function(err) {
-		if (err) return callback(err);
-		return callback(null, results);
-	});
+		return callback(err, results);
+	})
+
 };
 
 //
@@ -63,7 +90,7 @@ InstanceManager.prototype.reqall = function(url, callback) {
 // @param url The request URL
 // @param callback
 //
-InstanceManager.prototype.req = function(id, url, callback) {
+InstanceManager.prototype.req = function(id, method, url, callback) {
 	var self = this;
 	var inst = self.instances[id];
 
@@ -83,57 +110,46 @@ InstanceManager.prototype.req = function(id, url, callback) {
 
 	function _request(protocol, port, cert) {
 		return function(cb) {
-
 			var options = {
-				host: 'localhost',
-				port: port,
-				path: parsed.path,
-				method: 'GET',
+				url: protocol + "//localhost:" + port + parsed.path,
+				method: method,
 				headers: {},
 				agent: false,
+				followRedirect: false,
+				
 			};
 
 			if (cert) {
-				options.key = _readAssetSync('cc_private.pem');
-				options.cert = _readAssetSync('cc_public.pem');
+				options.key = self.clientCert.key;
+				options.cert = self.clientCert.cert;
 			}
 
 			options.headers[farmjs.HEADER_URL] = url;
 
-			var req = protocol.request(options, function(res) {
-				var body = '';
-				res.on('data', function(data) {
-					body += data.toString();
-				});
-				res.on('end', function(){
-					res.body = body;
-					cb(null, res);
-				});
-			});
+			if (method === "POST") {
+				options.body = self.postBody;
+			}
 
-			req.on('error', function(e) {
-				cb(e);
+			return request(options, function(err, res, body) {
+				if (err) return cb(null, { err: err });
+				else return cb(null, res);
 			});
-
-			req.end();			
 		}
 	}
 
 	return async.parallel(
 	[
-		_request(http, inst.http.port, false),
-		_request(https, inst.https.port, false),
-		_request(https, inst.https.port, true),
+		_request('http:', inst.http.port, false),
+		_request('https:', inst.https.port, false),
+		_request('https:', inst.https.port, true),
 	], 
 	function(err, results) {
-
-		var result = {
+		if (err) return callback(err);
+		return callback(null, {
 			'http': results[0],
 			'https': results[1],
 			'authHttps': results[2]
-		};
-
-		callback(null, result);
+		});
 	});
 };
 
@@ -190,24 +206,9 @@ InstanceManager.prototype.start = function(index, callback) {
 			if (err) return callback(err);
 
 			// create an http server for proxying non-spawned requests
-			var webServer = http.createServer(function(req, res) {
-
-				var echo = {
-					webserver: true,
-					appbasename: req.headers[farmjs.HEADER_APP],
-					appname: req.headers[farmjs.HEADER_APP_FULLNAME],
-					inst: id,
-					port: process.env.PORT,
-					argv: process.argv,
-					url: req.url,
-					headers: req.headers,
-				};
-
-				res.writeHead(200, { "content-type": "application/json" });
-				res.end(JSON.stringify(echo, true, 2));
-
-			}).listen(port);
-
+			var handler = require('./testhttphandler');
+			var webServer = http.createServer(handler({ webserver:true, inst: id }));
+			webServer.listen(port);
 
 			var spinnerRangeStart = 7000 + 100 * index;
 			var spinnerRangeEnd = spinnerRangeStart + 100 - 1;
@@ -217,17 +218,21 @@ InstanceManager.prototype.start = function(index, callback) {
  				logger: self.logger.pushctx(id), 
  				instance: id,
  				range: spinnerRange,
+ 				getAppByName: appresolver(port, id),
+ 				getInstances: function(callback) {
+					var instances = {};
+					for (var id in self.instances) {
+						instances[id] = {
+							host: 'localhost',
+							port: self.instances[id].internal.port
+						};
+					}
+					return callback(null, instances);
+				},
 			};
 
 			router = farmjs.createRouter(routerOptions);
 			router.addParentDomain("anodejs.org");
-			router.getAppByName = appresolver(port, id);
-
-			router.getInstanceByID = function(id, callback) {
-				var inst = self.instances[id];
-				if (!inst) return callback(new Error("instance "+ id + " not found"));
-				return callback(null, { host: 'localhost', port: inst.internal.port });
-			}
 
 			return callback(null, { server: webServer, port: port });
 		});
@@ -249,9 +254,9 @@ InstanceManager.prototype.start = function(index, callback) {
 			if (err) return callback(err);
 
 			var https = express.createServer({
-		        key: _readAssetSync('private.pem'),
-		        cert: _readAssetSync('public.pem'),
-		        ca: [ _readAssetSync('cc_public.pem') ],
+		        key: fs.readFileSync(_assetPath('private.pem')),
+		        cert: fs.readFileSync(_assetPath('public.pem')),
+		        ca: [ fs.readFileSync(_assetPath('cc_public.pem')) ],
 				requestCert: true,
 		        rejectUnauthorized: false,
 			});
@@ -299,6 +304,6 @@ exports.createInstanceManager = function() {
 
 // -- helpers
 
-function _readAssetSync(name) {
-	return fs.readFileSync(path.join(__dirname, 'assets', name));
+function _assetPath(name) {
+	return path.join(__dirname, "assets", name);
 }

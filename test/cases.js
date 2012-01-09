@@ -13,7 +13,7 @@ exports.$default = {
  * Node.js apps spawned and port-allocated automatically upon request
  */
 exports.tests = [
-    
+
     //
     // spawn a few node.js apps, test a few url and query variations
     //
@@ -24,7 +24,7 @@ exports.tests = [
             authHttps: { spawn: '$/master/apps/test/.shimmed.v2.index.js', url: '/1/2/3/4?q=5', app: 'test' },
         }
     },
-    
+
     { 
         from: 'http://anodejs.cloudapp.net/apps?$app=test', 
         expected: {
@@ -119,7 +119,6 @@ exports.tests = [
         from: 'http://foo.goo.anodejs.org/p/a/t/h', 
         expected: { $default: { status: 404 } },
     },
-
     //
     // these apps are marked as 'proxy' and not 'spawn', in which case we do not expect anything to be
     // spawned, but we expect the request to be proxied appropriately and headers piggybacked on
@@ -132,7 +131,6 @@ exports.tests = [
             authHttps: { proxy: true, headers: { 'x-anodejs-rewrite': 'master/apps/hooligan/index.svc' }, url: '/foo/goo?a=6', app: 'hooligan' },
         },
     },
-
     { 
         from: 'http://hello.world.anodejs.org/', 
         expected: {
@@ -146,6 +144,7 @@ exports.tests = [
             $default: { status: 200, proxy: true, headers: { 'x-anodejs-rewrite': 'master/apps/world/hello/index.aspx' }, url: '/', app: 'hello.world' },
         },
     },
+
 
     //
     // this app is tagged with { secure: true }, which means we expect a redirect from http to https
@@ -186,13 +185,6 @@ exports.tests = [
         }
     },
 
-    { 
-        from: 'http://test.anodejs.org/path?q=1&$inst=inst4', 
-        expected: {
-            authHttps: { spawn: '$/master/apps/test/.shimmed.v2.index.js', url: '/path?q=1', instance: 'inst4', app: 'test' },
-        },
-    },
-
     //
     // blocked (forbidden) app ({ blocked !== null })
     //
@@ -204,42 +196,27 @@ exports.tests = [
         },
     },
 
-/*
+    //
+    // $bcast will cause the request to be sent to all instances and results
+    // aggregated. if $bcast points to a url, it will be used as postback
+    // with the body of the results. otherwise, only headers and status are echoed back
+    //
 
-
-/*
-    { from: 'http://test.anodejs.org/a/b?$llog=BADINST', error: 404 },
-    { from: 'http://test.anodejs.org/a/b?$llog', error: 400 },
-    { from: 'http://hello.world.anodejs.org/a/b/c?$llog', spawn: '$/master/apps/world/hello/index.aspx', path:'/a/b/c' },
-    { from: 'http://test.anodejs.org/a/b?$llog=instance9', spawn: '$/master/apps/test/.shimmed.v2.index.js.logs/0.txt', path: '/a/b', app: 'test' },
-*/
-
+    {
+        from: 'http://test.anodejs.org/path?q=123&$bcast',
+        expected: {
+            authHttps: { status: 200, bcast: true, url: '/path?q=123' },
+        },
+    },
 ];
 
-exports.dash = [
-    { from: 'http://test.anodejs.org/1/2/3/4?q=5&$log', redirect: 'http://logs.sys.anodejs.org/index.html?app=test' },
-    { from: 'http://test.anodejs.org/1/2/3/4?q=5&$dash', redirect: 'http://logs.sys.anodejs.org/index.html?app=test' },
-];
-
-/**
- * $postback
- */
-exports.postback = [
-    { from: 'http://hello.world.anodejs.org/longrunningshit?$postback=http://localhost:6000?bla=1&param1=1234', postback: "http://localhost:6000", to: "http://hello.world.anodejs.org/longrunningshit?param1=1234" },
-];
-
-/**
- * $bcast
- */
-exports.broadcast = [
-    { from: 'http://hello.world.anodejs.org/a/b/c?$bcast', redirect: 'http://www.anodejs.org/bcast.sys?sync=http://hello.world.anodejs.org/a/b/c' },
-];
-
-/**
- * Hints and special rules
- */
-exports.special = [
-    { from: 'http://bla.bla.bla.anodejs.org/favicon.ico', error: 200 },
-    { from: 'http://anything.anodejs.org/robots.txt', error: 404 },
-    { from: 'http://rp.sys.anodejs.org', error: 400 },
-];
+// { from: 'http://hello.world.anodejs.org/longrunningshit?$postback=http://localhost:6000?bla=1&param1=1234', postback: "http://localhost:6000", to: "http://hello.world.anodejs.org/longrunningshit?param1=1234" },
+// { from: 'http://bla.bla.bla.anodejs.org/favicon.ico', error: 200 },
+// { from: 'http://anything.anodejs.org/robots.txt', error: 404 },
+// { from: 'http://rp.sys.anodejs.org', error: 400 },
+// { from: 'http://test.anodejs.org/a/b?$llog=BADINST', error: 404 },
+// { from: 'http://test.anodejs.org/a/b?$llog', error: 400 },
+// { from: 'http://hello.world.anodejs.org/a/b/c?$llog', spawn: '$/master/apps/world/hello/index.aspx', path:'/a/b/c' },
+// { from: 'http://test.anodejs.org/a/b?$llog=instance9', spawn: '$/master/apps/test/.shimmed.v2.index.js.logs/0.txt', path: '/a/b', app: 'test' },
+// { from: 'http://test.anodejs.org/1/2/3/4?q=5&$log', redirect: 'http://logs.sys.anodejs.org/index.html?app=test' },
+// { from: 'http://test.anodejs.org/1/2/3/4?q=5&$dash', redirect: 'http://logs.sys.anodejs.org/index.html?app=test' },

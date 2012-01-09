@@ -8,10 +8,21 @@ var instman = require('./instman');
 var logule = require('logule');
 
 var defaultExpectations = require('./cases').$default;
-console.log(defaultExpectations);
 
-logule.suppress('trace');
+//
+// some test definitions
+//
 
+var ITER = async.forEach;
+var NO_OF_INSTANCES = 3;
+var METHODS = [ 'POST', 'GET' ];
+var SHOW_TRACE = false;
+
+//
+// set up code
+//
+
+if (!SHOW_TRACE) logule.suppress('trace');
 var tests = { };
 tests.setUp = function(cb) {
 	var self = this;
@@ -39,10 +50,11 @@ tests.setUp = function(cb) {
 		var m = c.from;
 		if (msg) m += ": " + msg;
 		return test.deepEqual(obj1, obj2, m);
-	}
+	};
+
 
 	self.log('SETUP');
-	return self.instman.startMany(5, cb);
+	return self.instman.startMany(NO_OF_INSTANCES, cb);
 };
 
 var inner = tests.setUp;
@@ -69,19 +81,21 @@ tests.all = function(test) {
 	//
 
 	var cases = require('./cases').tests;
-	async.forEach(cases, function(c, next) {
-		//self.log("CASE: " + JSON.stringify(c));
+	ITER(cases, function(c, next) {
 
 		//
 		// Send request to all instances and verify they all behave as expected
 		//
 
-		self.instman.reqall(c.from, function(err, allresults) {
+		self.instman.reqall(c.from, METHODS, function(err, allresults) {
 			self.ok(test, c, !err);
 
 			if (!c.expected) throw new Error("Invalid test case, 'expected' is required");
 
 			function assertExpected(res, expected, inst) {
+
+				self.ok(test, c, !res.err, "not expecting an error:" + res.err);
+
 				//self.log(c.from, '==>', expected);
 
 				if (expected.status) {
@@ -90,44 +104,69 @@ tests.all = function(test) {
 
 				// this means that we can use the echo response to check a few more things
 				if (expected.status === 200) {
-					var echo = JSON.parse(res.body);
 
 					self.equals(test, c, res.headers['content-type'], "application/json");
 
-					// check some 'must-exist' headers
-					self.ok(test, c, echo.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
-					self.equals(test, c, echo.headers[farmjs.HEADER_URL], c.from, "Expecting x-farmjs-url header");
+					var echo;
+					if (!expected.bcast) {
+						return _assertEcho(JSON.parse(res.body));
+					}
+					else {
 
-					if (expected.headers) {
-						for (var h in expected.headers) {
-							self.equals(test, c, echo.headers[h], expected.headers[h]);
+						// handle broadcast responses. these responses basically contain
+						// the status code and headers for all the instances. the actual echo
+						// is in the x-echo header, so we extract it from there and call _assertEcho
+						// to verify it against the expecations.
+
+						var broadcastResponses = JSON.parse(res.body);
+
+						for (var id in broadcastResponses) {
+							var response = broadcastResponses[id];
+							var echo = JSON.parse(response.headers['x-echo']);
+							expected.instance = id; // make sure the instance fits the instance in the response
+							_assertEcho(echo);
 						}
 					}
 
-					var expectedURL = expected.url || "/";
-					if (expectedURL) {
-						self.equals(test, c, echo.url, expectedURL, "Expecting URL passed to app should be " + expectedURL);
-					}
+					function _assertEcho(echo) {
 
-					if (expected.app) {
-						self.equals(test, c, echo.headers[farmjs.HEADER_APP], expected.app, "Expecting app to be " + expected.app);
-						self.equals(test, c, echo.appbasename, expected.app, "Expecting app to be " + expected.app);
-					}
+						// request id must exist
+						self.ok(test, c, echo.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
 
-					if (expected.spawn) {
-						var expectedScript = path.normalize(expected.spawn.replace('$', path.join(__dirname, 'workdir')));
-						self.equals(test, c, echo.argv[1], expectedScript, "Expecting script to be " + expectedScript);
-					}
+						if (expected.headers) {
+							for (var h in expected.headers) {
+								self.equals(test, c, echo.headers[h], expected.headers[h]);
+							}
+						}
 
-					if (expected.instance) {
-						self.equals(test, c, echo.inst, expected.instance, "Expecting response from instance " + expected.instance);
-					}
-					else {
-						self.equals(test, c, echo.inst, inst, "Expecting instance to be the one we sent the request to");
-					}
+						if (expected.url) {
+							self.equals(test, c, echo.url, expected.url, "Expecting URL passed to app should be " + expected.url);
+						}
 
-					if (expected.proxy) {
-						self.ok(test, c, echo.webserver, "Expecting response to come from webserver");
+						if (expected.app) {
+							self.equals(test, c, echo.headers[farmjs.HEADER_APP], expected.app, "Expecting app to be " + expected.app);
+							self.equals(test, c, echo.appbasename, expected.app, "Expecting app to be " + expected.app);
+						}
+
+						if (expected.spawn) {
+							var expectedScript = path.normalize(expected.spawn.replace('$', path.join(__dirname, 'workdir')));
+							self.equals(test, c, echo.argv[1], expectedScript, "Expecting script to be " + expectedScript);
+						}
+
+						if (expected.instance) {
+							self.equals(test, c, echo.inst, expected.instance, "Expecting response from instance " + expected.instance);
+						}
+						else {
+							self.equals(test, c, echo.inst, inst, "Expecting instance to be the one we sent the request to");
+						}
+
+						if (expected.proxy) {
+							self.ok(test, c, echo.webserver, "Expecting response to come from webserver");
+						}
+
+						if (expected.method === "POST") {
+							self.equals(test, c, echo.bodyLength, self.instman.postBodyLength, "Since this is a POST, expecting body length");
+						}
 					}
 				}
 				else {
@@ -146,22 +185,69 @@ tests.all = function(test) {
 				}
 			}
 
-			for (var inst in allresults) {
-				var results = allresults[inst];
-				for (var endpoint in results) {
-					var expected = {};
-					var globalDefaults = defaultExpectations[endpoint];
-					for (var k in globalDefaults) expected[k] = globalDefaults[k];
+			//
+			// iterate over results from all instances
+			//
 
-					var caseDefaults = c.expected.$default;
-					if (caseDefaults) {
-						for (var k in caseDefaults) expected[k] = caseDefaults[k];
+			for (var inst in self.instman.instances) {
+
+				var results = allresults[inst];
+
+				self.ok(test, c, results, "expecting results");
+
+				//
+				// iterate over results from all endpoints
+				//
+
+				for (var method in results) {
+
+					var endpoints = results[method];
+
+					self.ok(test, c, endpoints, "expecting endpoints in the results for " + method);
+
+					//
+					// iterate over all http methods
+
+					for (var endpoint in endpoints) {
+
+						var result = endpoints[endpoint];
+
+						self.ok(test, c, result, "expecting result for method " + method + " endpoint " + endpoint);
+
+						//
+						// prepare the 'expected' object by overriding global 
+						// and then local defaults
+						//
+
+						var expected = {};
+
+						// global defaults
+						var globalDefaults = defaultExpectations[endpoint];
+						for (var k in globalDefaults) expected[k] = globalDefaults[k];
+
+						// local default
+						var caseDefaults = c.expected.$default;
+						if (caseDefaults) for (var k in caseDefaults) expected[k] = caseDefaults[k];
+
+						// actual case
+
+						var exp = c.expected[endpoint];
+
+						for (var k in exp) expected[k] = exp[k];
+
+						//
+						// put some matrix-specific data on the expected object
+						//
+
+						expected.method = method;
+
+						//
+						// check that the result fits expectation
+						//
+
+						assertExpected(result, expected, inst);
 					}
 
-					var exp = c.expected[endpoint];
-					for (var k in exp) expected[k] = exp[k];
-
-					assertExpected(results[endpoint], expected, inst);
 				}
 			}
 
