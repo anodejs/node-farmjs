@@ -20,7 +20,7 @@ function InstanceManager(options) {
 	self.instances = {};
 	self.logger = ctxconsole(options.logger);
 
-	self.postBody = fs.readFileSync(_assetPath('small.html'));
+	self.postBody = fs.readFileSync(_assetPath('nodejs.html'));
 	self.postBodyLength = self.postBody.length;
 
 	self.clientCert = {
@@ -100,6 +100,7 @@ InstanceManager.prototype.req = function(id, method, url, callback) {
 
 	// parse url
 	var parsed = urlparser.parse(url);
+	var attempts = 3;
 
 	//
 	// For every URL, we are issuing three requests:
@@ -131,8 +132,29 @@ InstanceManager.prototype.req = function(id, method, url, callback) {
 			}
 
 			return request(options, function(err, res, body) {
-				if (err) return cb(null, { err: err });
-				else return cb(null, res);
+
+				if (err) {
+					
+					// retry if we had a connection reset
+					// this can happen due to high load and retry should work
+					if (err.code === "ECONNRESET") {
+						if (--attempts > 0) return setTimeout(function() {
+							console.error('retry after connection reset');
+							return _request(protocol, port, cert)(cb);
+						}, 200);
+						else { 
+							console.error('retries after ECONNRESET exhausted... sorry, this is going to fail');
+						}
+					}
+
+					return cb(null, { err: err });
+					
+				}
+				else {
+
+					return cb(null, res);
+
+				}
 			});
 		}
 	}
