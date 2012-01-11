@@ -240,7 +240,7 @@ InstanceManager.prototype.start = function(index, callback) {
                 logger: self.logger.pushctx(id), 
                 instance: id,
                 range: spinnerRange,
-                getAppByName: appresolver(port, id),
+                decide: appresolver(port, id),
                 getInstances: function(callback) {
                     var instances = {};
                     for (var id in self.instances) {

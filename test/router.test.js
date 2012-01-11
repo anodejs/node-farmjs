@@ -158,7 +158,7 @@ tests.all = function(test) {
 
                         if (expected.app) {
                             self.equals(test, c, echo.headers[farmjs.HEADERS.APP], expected.app, "Expecting app to be " + expected.app);
-                            self.equals(test, c, echo.appbasename, expected.app, "Expecting app to be " + expected.app);
+                            self.equals(test, c, echo.appname, expected.app, "Expecting app to be " + expected.app);
                         }
 
                         if (expected.spawn) {

@@ -8,7 +8,7 @@ exports.parseURL = {
     setUp: function(cb) {
         var server = farmjs.createRouter({ 
             instance: 'inst0', 
-            getAppByName: function() { }, 
+            decide: function() { }, 
             getInstances:function() { },
         });
 

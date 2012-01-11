@@ -14,9 +14,16 @@ module.exports = function(webServerPort) {
     for (var appname in apps) {
         var app = apps[appname];
 
+        app.decision = {
+            public: app.public,
+            secure: app.secure,
+            action: { },
+        };
+
         if (app.type === "node") {
             var script = path.join(workdir, app.index);
-            app.spawn = {
+
+            app.decision.action.spawn = {
                 name: app.name,
                 command: process.execPath,
                 args: [ script ],
@@ -33,27 +40,42 @@ module.exports = function(webServerPort) {
             fs.writeFileSync(script, contents);
         }
         else {
-
-            app.proxy = {
+            app.decision.action.proxy = {
                 host: 'localhost',
                 port: webServerPort,
                 headers: {
                     'x-nospawn': 'yes',
                     'x-anodejs-rewrite': app.index
-                }
+                },
             };
+        }
 
+        if (app.blocked) {
+            app.decision.action = {};
+            app.decision.action.error = {
+                status: 403,
+                msg: "app is blocked because it is defined as a worker and workers can only run from the default branch ('rp.sys')",
+            };
+        }
+
+        if (app.alias) {
+            app.decision.action = {};
+            app.decision.action.alias = {
+                target: app.alias.target
+            };
         }
     }
 
-    return function(logger, name, callback) {
-        logger.log('getappbyname called with', name);
+    return function(req, name, callback) {
+        req.logger.log('getappbyname called with', name);
 
         if (!(name in apps)) {
             callback(new Error("app '" + name + "' not found"));
             return;
         }
 
-        callback(null, apps[name]);
+        var decision = apps[name].decision;
+        req.logger.log('app decision:', JSON.stringify(decision));
+        return callback(null, decision);
     };
 };

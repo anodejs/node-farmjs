@@ -74,7 +74,7 @@ exports.tests = [
     { 
         from: 'http://direct-alias.anodejs.org/1234588', 
         expected: {
-            authHttps: { spawn: '$/master/apps/direct/.shimmed.v2.index.js', url: '/1234588', app: 'direct' },
+            authHttps: { spawn: '$/master/apps/direct/.shimmed.v2.index.js', url: '/1234588', app: 'direct-alias' },
         },
     },
 
@@ -97,7 +97,7 @@ exports.tests = [
     { 
         from: 'http://foogoo.branch9.anodejs.org', 
         expected: {
-            authHttps: { spawn: '$/branch9/apps/foogoo/.shimmed.v2.index.js', url: '/', app: 'foogoo' },
+            authHttps: { spawn: '$/branch9/apps/foogoo/.shimmed.v2.index.js', url: '/', app: 'foogoo.branch9' },
         },
     },
 

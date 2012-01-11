@@ -17,7 +17,7 @@ exports.simple = testCase({
             var options = {
                 instance: 'one',
                 authPrivate: false,
-                getAppByName: appresolver(8090),
+                decide: appresolver(8090),
                 getInstances: function(cb) { return cb(null, {}); },
                 logger: logule,
             };
