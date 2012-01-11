@@ -6,7 +6,7 @@ var logule = require('logule');
 var http = require('http');
 var https = require('https');
 var express = require('express');
-var farmjs = require('../main');
+var farmjs = require('../../main');
 var appresolver = require('./appresolver');
 var fs = require('fs');
 var path = require('path');
@@ -327,5 +327,5 @@ exports.createInstanceManager = function() {
 // -- helpers
 
 function _assetPath(name) {
-    return path.join(__dirname, "assets", name);
+    return path.join(__dirname, "..", "assets", name);
 }

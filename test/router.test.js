@@ -4,10 +4,10 @@ var path = require('path');
 var async = require('async');
 
 var farmjs = require('../main');
-var instman = require('./instman');
+var instman = require('./lib/instman');
 var logule = require('logule');
 
-var defaultExpectations = require('./cases').$default;
+var defaultExpectations = require('./lib/cases').$default;
 
 //
 // some test definitions
@@ -80,7 +80,7 @@ tests.all = function(test) {
     // Iterate through all the cases and run them (in parallel !)
     //
 
-    var cases = require('./cases').tests;
+    var cases = require('./lib/cases').tests;
     ITER(cases, function(c, next) {
 
         //
@@ -94,7 +94,20 @@ tests.all = function(test) {
 
             function assertExpected(res, expected, inst) {
 
+                //
+                // verify some general response stuff
+                //
+
                 self.ok(test, c, !res.err, "not expecting an error:" + res.err);
+                self.ok(test, c, res.headers[farmjs.HEADER_REQID], "expecting x-farmjs-reqid on every response");
+                self.ok(test, c, res.headers[farmjs.HEADER_INSTANCE], "expecting x-farmjs-instance on every response");
+                self.equals(test, c, res.headers[farmjs.HEADER_INSTANCE], expected.instance || inst, "x-farmjs-instance should be " + (expected.instance || inst));
+
+                // verify the we have [CORS](http://www.w3.org/TR/cors/) headers.
+                self.ok(test, c, res.headers['access-control-allow-origin']);
+                self.ok(test, c, res.headers['access-control-allow-methods']);
+                self.ok(test, c, res.headers['access-control-allow-headers']);
+                self.ok(test, c, res.headers['access-control-allow-credentials']);
 
                 //self.log(c.from, '==>', expected);
 
@@ -153,12 +166,8 @@ tests.all = function(test) {
                             self.equals(test, c, echo.argv[1], expectedScript, "Expecting script to be " + expectedScript);
                         }
 
-                        if (expected.instance) {
-                            self.equals(test, c, echo.inst, expected.instance, "Expecting response from instance " + expected.instance);
-                        }
-                        else {
-                            self.equals(test, c, echo.inst, inst, "Expecting instance to be the one we sent the request to");
-                        }
+                        var expectedInstance = expected.instance || inst;
+                        self.equals(test, c, echo.inst, expectedInstance, "Expecting response from instance " + expectedInstance);
 
                         if (expected.proxy) {
                             self.ok(test, c, echo.webserver, "Expecting response to come from webserver");

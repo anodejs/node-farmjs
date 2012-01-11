@@ -6,7 +6,7 @@ var fs = require('fs');
 module.exports = function(webServerPort) {
     if (!webServerPort) throw new Error('webServerPort required');
     
-    var workdir = path.join(__dirname, 'workdir');
+    var workdir = path.join(__dirname, '..', 'workdir');
     var appsData = fs.readFileSync(path.join(workdir, 'apps.json'));
     var apps = JSON.parse(appsData);
 
@@ -45,12 +45,6 @@ module.exports = function(webServerPort) {
 
         }
     }
-
-    /*
-    var jsonFile = path.join(__dirname, "apps." + Math.round(Math.random() * 10000) + ".json");
-    fs.writeFileSync(jsonFile, JSON.stringify(self.apps, true, 2));
-    self.log("Apps stored under:", jsonFile);
-    */
 
     return function(logger, name, callback) {
         logger.log('getappbyname called with', name);
