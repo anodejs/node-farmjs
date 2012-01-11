@@ -99,9 +99,9 @@ tests.all = function(test) {
                 //
 
                 self.ok(test, c, !res.err, "not expecting an error:" + res.err);
-                self.ok(test, c, res.headers[farmjs.HEADER_REQID], "expecting x-farmjs-reqid on every response");
-                self.ok(test, c, res.headers[farmjs.HEADER_INSTANCE], "expecting x-farmjs-instance on every response");
-                self.equals(test, c, res.headers[farmjs.HEADER_INSTANCE], expected.instance || inst, "x-farmjs-instance should be " + (expected.instance || inst));
+                self.ok(test, c, res.headers[farmjs.HEADERS.REQID], "expecting x-farmjs-reqid on every response");
+                self.ok(test, c, res.headers[farmjs.HEADERS.INSTANCE], "expecting x-farmjs-instance on every response");
+                self.equals(test, c, res.headers[farmjs.HEADERS.INSTANCE], expected.instance || inst, "x-farmjs-instance should be " + (expected.instance || inst));
 
                 // verify the we have [CORS](http://www.w3.org/TR/cors/) headers.
                 self.ok(test, c, res.headers['access-control-allow-origin']);
@@ -144,7 +144,7 @@ tests.all = function(test) {
                     function _assertEcho(echo) {
 
                         // request id must exist
-                        self.ok(test, c, echo.headers[farmjs.HEADER_REQID], "Expecting x-farmjs-reqid header");
+                        self.ok(test, c, echo.headers[farmjs.HEADERS.REQID], "Expecting x-farmjs-reqid header");
 
                         if (expected.headers) {
                             for (var h in expected.headers) {
@@ -157,7 +157,7 @@ tests.all = function(test) {
                         }
 
                         if (expected.app) {
-                            self.equals(test, c, echo.headers[farmjs.HEADER_APP], expected.app, "Expecting app to be " + expected.app);
+                            self.equals(test, c, echo.headers[farmjs.HEADERS.APP], expected.app, "Expecting app to be " + expected.app);
                             self.equals(test, c, echo.appbasename, expected.app, "Expecting app to be " + expected.app);
                         }
 

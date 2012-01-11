@@ -125,7 +125,7 @@ InstanceManager.prototype.req = function(id, method, url, callback) {
                 options.cert = self.clientCert.cert;
             }
 
-            options.headers[farmjs.HEADER_URL] = url;
+            options.headers[farmjs.HEADERS.URL] = url;
 
             if (method === "POST") {
                 options.body = self.postBody;

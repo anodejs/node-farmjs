@@ -56,12 +56,10 @@ exports.simple = testCase({
             });
 
             // make sure all farmjs headers are allowed
-            Object.keys(farmjs).forEach(function(k) {
-                if (k.indexOf('HEADER_') === 0) {
-                    var expected = farmjs[k];
-                    test.ok(expected in allowedHeaders, "expecting '" + farmjs[k] + "' to be in the access-control-allow-headers header");
-                }
-            });
+            for (var k in farmjs.HEADERS) {
+                var expected = farmjs.HEADERS[k];
+                test.ok(expected in allowedHeaders, "expecting '" + farmjs.HEADERS[k] + "' to be in the access-control-allow-headers header");
+            }
 
             test.done();
         });
