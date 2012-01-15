@@ -29,9 +29,8 @@ exports.parseURL = {
             fakereq.headers = headers || {};
             fakereq.headers.host = p.host;
             fakereq.logger = ctxconsole(console).pushctx('parseurl');
-
-            var secure = p.protocol === "https:" ? true : false;
-            return server._parseURL(fakereq, secure);
+            fakereq.secure = p.protocol === "https:" ? true : false;
+            return server._parseURL(fakereq);
         };
 
         cb();           
