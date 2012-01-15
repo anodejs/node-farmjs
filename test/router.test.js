@@ -100,18 +100,17 @@ tests.all = function(test) {
 
                 self.ok(test, c, !res.err, "not expecting an error:" + res.err);
                 self.ok(test, c, res.headers, "Expecting headers in response");
+                self.ok(test, c, res.headers[farmjs.HEADERS.REQID], "expecting x-farmjs-reqid on every response");
+                self.ok(test, c, res.headers[farmjs.HEADERS.INSTANCE], "expecting x-farmjs-instance on every response");
+                self.equals(test, c, res.headers[farmjs.HEADERS.INSTANCE], expected.instance || inst, "x-farmjs-instance should be " + (expected.instance || inst));
 
-                if (res.headers) {
-                    self.ok(test, c, res.headers[farmjs.HEADERS.REQID], "expecting x-farmjs-reqid on every response");
-                    self.ok(test, c, res.headers[farmjs.HEADERS.INSTANCE], "expecting x-farmjs-instance on every response");
-                    self.equals(test, c, res.headers[farmjs.HEADERS.INSTANCE], expected.instance || inst, "x-farmjs-instance should be " + (expected.instance || inst));
+                // verify the we have [CORS](http://www.w3.org/TR/cors/) headers.
+                self.ok(test, c, res.headers['access-control-allow-origin']);
+                self.ok(test, c, res.headers['access-control-allow-methods']);
+                self.ok(test, c, res.headers['access-control-allow-headers']);
+                self.ok(test, c, res.headers['access-control-allow-credentials']);
 
-                    // verify the we have [CORS](http://www.w3.org/TR/cors/) headers.
-                    self.ok(test, c, res.headers['access-control-allow-origin']);
-                    self.ok(test, c, res.headers['access-control-allow-methods']);
-                    self.ok(test, c, res.headers['access-control-allow-headers']);
-                    self.ok(test, c, res.headers['access-control-allow-credentials']);
-                }
+                //self.log(c.from, '==>', expected);
 
                 if (expected.status) {
                     self.equals(test, c, res.statusCode, expected.status);
