@@ -20,7 +20,7 @@ function InstanceManager(options) {
     self.instances = {};
     self.logger = ctxconsole(options.logger);
 
-    self.postBody = fs.readFileSync(_assetPath('nodejs.html'));
+    self.postBody = fs.readFileSync(_assetPath('small.html'));
     self.postBodyLength = self.postBody.length;
 
     self.clientCert = {
@@ -100,7 +100,7 @@ InstanceManager.prototype.req = function(id, method, url, callback) {
 
     // parse url
     var parsed = urlparser.parse(url);
-    var attempts = 100;
+    var attempts = 10;
 
     //
     // For every URL, we are issuing three requests:
