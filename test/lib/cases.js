@@ -32,6 +32,13 @@ exports.tests = [
         },
     },
 
+    {
+        from: 'http://anodejs.cloudapp.net/test/path/pith?x=5', 
+        expected: {
+            authHttps: { spawn: '$/master/apps/test/.shimmed.v2.index.js', url: '/path/pith?x=5', app: 'test' },
+        },
+    },
+
     { 
         from: 'http://test.anodejs.org/1/2/3/4?q=5',
         expected: { 
@@ -185,6 +192,13 @@ exports.tests = [
         }
     },
 
+    {
+        from: 'http://anodejs.cloudapp.net/test/mypath?q=123&$inst=inst0',
+        expected: {
+            authHttps: { spawn: '$/master/apps/test/.shimmed.v2.index.js', url: '/mypath?q=123', instance: 'inst0', app: 'test' },
+        }
+    },
+
     //
     // blocked (forbidden) app ({ blocked !== null })
     //
@@ -206,6 +220,13 @@ exports.tests = [
         from: 'http://test.anodejs.org/path?q=123&$bcast',
         expected: {
             authHttps: { status: 200, bcast: true, url: '/path?q=123' },
+        },
+    },
+
+    {
+        from: 'http://anodejs.cloudapp.net/test/pathxyz?q=123&$bcast',
+        expected: {
+            authHttps: { status: 200, bcast: true, url: '/pathxyz?q=123' },
         },
     },
 ];
