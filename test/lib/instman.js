@@ -100,7 +100,7 @@ InstanceManager.prototype.req = function(id, method, url, callback) {
 
     // parse url
     var parsed = urlparser.parse(url);
-    var attempts = 20;
+    var attempts = 100;
 
     //
     // For every URL, we are issuing three requests:
