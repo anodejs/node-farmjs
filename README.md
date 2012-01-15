@@ -5,6 +5,8 @@
 A node.js server farm with everything you ever dreamed of.
 
 ```bash
-npm install -g farmjs
+npm install farmjs
 ```
+
+This is still in alpha... Wait for it.
 
