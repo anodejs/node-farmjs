@@ -13,6 +13,7 @@ module.exports = function(extend) {
                 port: process.env.PORT,
                 argv: process.argv,
                 url: req.url,
+                pid: process.pid,
                 headers: req.headers,
             };
 

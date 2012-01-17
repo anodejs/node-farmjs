@@ -64,5 +64,25 @@ exports.simple = testCase({
             test.done();
         });
     },
-    
+
+    manualSpin: function(test) {
+        var self = this;
+        self.router.spin('test', function(err, port) {
+            test.ok(!err, err);
+            test.ok(port);
+
+            return request('http://localhost:' + port, function(err, res, body) {
+                body = JSON.parse(body);
+                test.ok(~body.argv[1].indexOf('workdir/master/apps/test'), "expecting the app to be test");
+
+                var pid1 = body.pid;
+                return request('http://localhost:' + self.server.port + "/test", function(err, res, body) {
+                    body = JSON.parse(body);
+                    test.equals(pid1, body.pid, "Expecting requests to go to the same process");
+                    test.done();
+                });
+            });
+        });
+    },
+
 });
