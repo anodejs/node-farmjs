@@ -187,7 +187,12 @@ tests.all = function(test) {
                     if (expected.body) {
                         self.equals(test, c, res.headers['content-type'], "application/json", "Body is expected, so we need json");
 
-                        var body = JSON.parse(res.body);
+                        var body = null;
+                        try { body = JSON.parse(res.body); }
+                        catch (e) { 
+                            console.error('unable to parse body:', res.body, e);
+                        }
+
                         for (var k in expected.body) {
                             self.equals(test, c, body[k], expected.body[k], "Expecting body to contain " + k + ": " + expected.body[k]);
                         }
