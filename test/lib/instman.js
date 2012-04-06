@@ -255,6 +255,7 @@ InstanceManager.prototype.start = function(index, callback) {
 
             router = farmjs.createRouter(routerOptions);
             router.addParentDomain("anodejs.org");
+            router.addAppDomain('myapp.net', 'direct');
 
             return callback(null, { server: webServer, port: port });
         });

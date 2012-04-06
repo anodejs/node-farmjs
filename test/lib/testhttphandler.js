@@ -14,6 +14,7 @@ module.exports = function(extend) {
                 argv: process.argv,
                 url: req.url,
                 headers: req.headers,
+                pid: process.pid,
             };
 
             if (extend) for (var k in extend) echo[k] = extend[k];
