@@ -3,6 +3,7 @@ var farmjs = require('../main');
 var express = require('express');
 var request = require('request');
 var logule = require('logule');
+var http = require('http');
 
 logule = logule.suppress('info');
 logule = logule.suppress('trace');
@@ -28,7 +29,7 @@ exports.simple = testCase({
             self.req = function(method, url, callback) { 
                 var o = {
                     method: method,
-                    url: 'http://localhost:' + self.server.port + url
+                    url: 'http://localhost:' + self.server.port + url,
                 };
                 return request(o, callback); 
             };
@@ -62,6 +63,33 @@ exports.simple = testCase({
             }
 
             test.done();
+        });
+    },
+
+    manualSpin: function(test) {
+        var self = this;
+        self.router.spin('test', function(err, port) {
+            test.ok(!err, err);
+            test.ok(port);
+
+            // port is a named pipe/unix-domain-sockets.
+            var req = http.request({ socketPath: port }, function(res) {
+                var body = '';
+                res.on('data', function(data) { body += data.toString(); });
+                res.on('end', function() {
+                    body = JSON.parse(body);
+                    test.ok(~body.argv[1].replace(/\\/g, '/').indexOf('workdir/master/apps/test'), "expecting the app to be test");
+                    test.equals(body.appname, 'test');
+                    var pid1 = body.pid;
+                    return self.req('GET', '/test', function(err, res, body) {
+                        body = JSON.parse(body);
+                        test.equals(pid1, body.pid, "Expecting requests to go to the same process");
+                        test.done();
+                    });
+                })
+            });
+
+            req.end();
         });
     },
     

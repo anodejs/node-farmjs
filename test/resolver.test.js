@@ -72,4 +72,24 @@ case_groups.forEach(function(g) {
     });
 });
 
-
+/**
+ * verfies that when you add a domain twice, it ignores the second add
+ */
+exports.rootDomainUniqness = function(test) {
+    var resolver = new Resolver();
+    test.deepEqual(resolver.rootDomains, []);
+    resolver.addRootDomain('moshe.com');
+    test.deepEqual(resolver.rootDomains, [ 'moshe.com' ]);
+    resolver.addRootDomain('booboo.com');
+    test.deepEqual(resolver.rootDomains, [ 'moshe.com', 'booboo.com' ]);
+    resolver.addRootDomain('moshe.com');
+    resolver.addRootDomain('moshe.com');
+    resolver.addRootDomain('moshe.com');
+    resolver.addRootDomain('googoo.com');
+    resolver.addRootDomain('booboo.com');
+    resolver.addRootDomain('booboo.com');
+    resolver.addRootDomain('booboo.com');
+    resolver.addRootDomain('booboo.com');
+    test.deepEqual(resolver.rootDomains, [ 'moshe.com', 'booboo.com', 'googoo.com' ]);
+    test.done();
+};

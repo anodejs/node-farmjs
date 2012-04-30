@@ -7,13 +7,13 @@ module.exports = function(extend) {
         req.on('end', function() {
             var echo = {
                 bodyLength: len,
-                appname: process.env.FARMJS_APP_FULLNAME || req.headers['x-farmjs-app'],
-                appbasename: process.env.FARMJS_APP || req.headers['x-farmjs-app-fullname'],
+                appname: process.env.FARMJS_APP || req.headers['x-farmjs-app'],
                 inst: process.env.FARMJS_INSTANCE,
                 port: process.env.PORT,
                 argv: process.argv,
                 url: req.url,
                 headers: req.headers,
+                pid: process.pid,
             };
 
             if (extend) for (var k in extend) echo[k] = extend[k];

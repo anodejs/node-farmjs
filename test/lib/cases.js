@@ -61,6 +61,13 @@ exports.tests = [
     },
 
     { 
+        from: 'http://myapp.net/12345', // use app domains
+        expected: { 
+            authHttps: { spawn: '$/master/apps/direct/.shimmed.v2.index.js', url: '/12345', app: 'direct' },
+        }
+    },
+
+    { 
         from: 'http://direct2.anodejs.org/1234599',
         expected: { 
             authHttps: { spawn: '$/master/apps/direct2/.shimmed.v2.index.js', url: '/1234599', app: 'direct2' },
